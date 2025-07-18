@@ -1,103 +1,12 @@
-// documents.js (Full file, all functions globalized)
+// Document detail page JS
+// Uses DMS utilities from common.js
 
-// Dictionaries for display values (pure JS constants)
-const docTypes = {
-    'payment': 'Заявка на оплату',
-    'memo': 'Служебная записка',
-    'contract': 'Договор',
-    'leave': 'Заявка на отпуск',
-    'payment_plan': 'План платежей',
-    'expenditure': 'Заявка на расходование средств'
-};
-
-const operationTypesDisplay = {
-    'ОплатаПоставщику': 'Оплата Поставщику',
-    'ВозвратДенежныхСредствПокупателю': 'Возврат Денежных Средств Покупателю',
-    'ВыдачаДенежныхСредствПодотчетнику': 'Выдача Денежных Средств Подотчетнику',
-    'ПеречислениеЗП': 'Перечисление ЗП',
-    'ПеречислениеНалога': 'Перечисление Налога',
-    'ПеречислениеНДССИзмененнымСрокомУплаты': 'Перечисление НДС С Измененным Сроком Уплаты',
-    'ПеречислениеПенсионныхВзносов': 'Перечисление Пенсионных Взносов',
-    'ПеречислениеПоИсполнительнымЛистам': 'Перечисление По Исполнительным Листам',
-    'ПеречислениеСоциальных Отчислений': 'Перечисление Социальных Отчислений',
-    'ПрочиеРасчетыСКонтрагентами': 'Прочие Расчеты С Контрагентами',
-    'РасчетыПоКредитамИЗаймамСРаботниками': 'Расчеты По Кредитам И Займам С Работниками',
-    'ПрочийРасходДенежныхСредств': 'Прочий Расход Денежных Средств',
-    'РасчетыПоКредитамИЗаймамСКонтрагентами': 'Расчеты По Кредитам И Займам С Контрагентами',
-    'РасчетыПоДоходуОтРазовыхВыплатСКонтрагентами': 'Расчеты По Доходу От Разовых Выплат С Контрагентами',
-    'ОплатаСтруктурномуПодразделению': 'Оплата Структурному Подразделению',
-    'ПереводНаДругойСчет': 'Перевод На Другой Счет',
-};
-
-const paymentFormsDisplay = {
-    'cash': 'Наличные',
-    'bank_transfer': 'Безналичные',
-};
-
-const currencyDisplay = {
-    'USD': 'Доллар США',
-    'KZT': 'KZT тенге',
-    'RUB': 'RUB',
-};
-
-
-// --- GLOBAL FUNCTIONS (Accessible directly from HTML onclick attributes) ---
-
-function getDocTypeName(type) {
-    return docTypes[type] || type;
-}
-
-function getStatusText(status) {
-    switch (status?.toLowerCase()) {
-        case 'prepared': return 'Подготовлен';
-        case 'on_approval': return 'На согласовании';
-        case 'approved': return 'Утвержден';
-        case 'pending': return 'Ожидает';
-        case 'signed': return 'Подписан';
-        case 'rejected': return 'Отклонен';
-        default: return status;
-    }
-}
-
-function getStatusColorClass(status) {
-    switch (status?.toLowerCase()) {
-        case 'prepared':
-            return 'bg-gray-200 text-gray-800';
-        case 'on_approval':
-            return 'bg-yellow-200 text-yellow-800';
-        case 'approved':
-            return 'bg-green-200 text-green-800';
-        case 'pending':
-            return 'bg-orange-200 text-orange-800';
-        case 'signed':
-            return 'bg-blue-200 text-blue-800';
-        case 'rejected':
-            return 'bg-red-200 text-red-800';
-        default:
-            return 'bg-gray-200 text-gray-800';
-    }
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('open');
-    sidebarOverlay.classList.toggle('hidden');
-
-    if (sidebar.classList.contains('open')) {
-        document.body.style.overflow = 'hidden'; // Prevent scrolling main content on mobile
-    } else {
-        document.body.style.overflow = '';
-    }
-}
-
-function toggleDocumentFiltersMenu() {
-    const submenu = document.getElementById('document-filters-submenu');
-    const caret = document.getElementById('doc-filters-caret');
-    submenu.classList.toggle('hidden');
-    caret.classList.toggle('fa-caret-down');
-    caret.classList.toggle('fa-caret-up');
-}
+// Example: Toggle sidebar for detail view
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('sidebar-toggle-btn')?.addEventListener('click', function() {
+    toggleSidebar();
+  });
+});
 
 function toggleIncomingMenu() {
     const submenu = document.getElementById('incoming-submenu');

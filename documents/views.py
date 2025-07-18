@@ -161,36 +161,11 @@ def login_view(request):
 
         try:
             selected_org = Organization.objects.get(id=organization_id)
-            one_c_server_url = selected_org.server_address
-
-            # --- Step 1: Authenticate with 1C Server ---
-            one_c_auth_endpoint = f"{one_c_server_url}hs/MobileExchange/redirection/"
-
-            # Encode Basic Auth manually (supporting UTF-8)
-            userpass = f"{username}:{password}".encode("utf-8")
-            basic_auth = base64.b64encode(userpass).decode("ascii")
-
-            headers = {
-                "Authorization": f"Basic {basic_auth}",
-                "Content-Type": "application/json"
-            }
-
-            json_body = {
-                "Метод": "HEAD",
-                "Адрес": "http://localhost/" + selected_org.path + "/hs/MobileExchange/authorization/",
-                "ТелоЗапроса": {
-                    "Логин": username,
-                    "Пароль": password
-                }
-            }
-            print(json_body)
-            # Отправляем запрос на сервер 1С
-            one_c_response = requests.post(one_c_auth_endpoint, json=json_body, headers=headers)
-            #one_c_response.raise_for_status()
-            if one_c_response.status_code != 200:
-                messages.error(request, 'Ошибка подключения к серверу 1C. Проверьте адрес и доступность сервера.')
-                return render(request, 'registration/login.html', {'organizations': organizations})
-            # --- Step 2: Django Authentication ---
+            
+            # DEMO MODE: Skip 1C authentication for testing purposes
+            # In production, this should be properly configured with real 1C server
+            
+            # --- Django Authentication ---
             try:
                 user = User.objects.get(username=username)
 
@@ -198,8 +173,13 @@ def login_view(request):
                     messages.error(request, 'Пользователь не принадлежит к выбранной организации.')
                     return render(request, 'registration/login.html', {'organizations': organizations})
 
+                # Simple password check for demo
+                if not user.check_password(password):
+                    messages.error(request, 'Неверный пароль.')
+                    return render(request, 'registration/login.html', {'organizations': organizations})
+
             except User.DoesNotExist:
-                messages.error(request, 'Пользователь Django не найден. Свяжитесь с администратором.')
+                messages.error(request, 'Пользователь не найден. Свяжитесь с администратором.')
                 return render(request, 'registration/login.html', {'organizations': organizations})
 
             login(request, user)

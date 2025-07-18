@@ -1,239 +1,369 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Документы</title>
-    {% load static %}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/documents.css' %}">
-</head>
-<body class="bg-gray-100 text-gray-800 antialiased">
-
-{# Sidebar overlay - used only on mobile #}
-<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden" onclick="toggleSidebar()"></div>
-
-{# Sidebar - fixed on desktop, slides for mobile #}
-<aside class="bg-gradient-to-br from-gray-800 to-gray-900 text-white flex flex-col p-4 z-40" id="sidebar">
-    <div class="text-2xl font-bold mb-8 flex items-center justify-between">
-        <div class="flex items-center">
-            <i class="fas fa-file-alt mr-3 text-blue-400"></i> Документы
-        </div>
-        {# Close button for mobile sidebar #}
-        <button onclick="toggleSidebar()" class="md:hidden text-white focus:outline-none p-2 rounded-full hover:bg-gray-700">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    <nav class="space-y-2 flex-1">
-        
-
-        <div>
-            <button onclick="toggleDocumentFiltersMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
-                <i class="fas fa-folder mr-3"></i> Все документы
-                <i id="doc-filters-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
-            </button>
-            <div id="document-filters-submenu" class="ml-6 mt-2 space-y-1 hidden">
-                <button onclick="filterBy('all')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-list mr-3"></i> Все
-                </button>
-                <button onclick="filterBy('history')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-history mr-3"></i> История
-                </button>
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Система управления документами{% endblock %}
+{% block sidebar %}
+    {# Sidebar overlay - used only on mobile #}
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden backdrop-blur-sm" onclick="toggleSidebar()"></div>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-file-signature"></i>
+                <span>Документы</span>
             </div>
-        </div>
-
-        <div>
-            <button onclick="toggleIncomingMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
-                <i class="fas fa-inbox mr-3"></i> Входящие
-                <i id="incoming-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
+            <button onclick="toggleSidebar()" class="md:hidden text-white focus:outline-none p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <i class="fas fa-times"></i>
             </button>
-            <div id="incoming-submenu" class="ml-6 mt-2 space-y-1 hidden">
-                <button onclick="filterBy('incoming-to-sign')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-pen-alt mr-3"></i> Подписать <span id="count-incoming-to-sign" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
-                <button onclick="filterBy('incoming-payment-plan')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-file-invoice-dollar mr-3"></i> План платежей <span id="count-incoming-payment-plan" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
-                <button onclick="filterBy('incoming-payment-request')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-money-bill-wave mr-3"></i> Заявка на оплату <span id="count-incoming-payment-request" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
+        </div>
+        <nav class="sidebar-nav">
+            {# Quick Stats Section #}
+            <div class="nav-section">
+                <div class="nav-section-title">Статистика</div>
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="bg-blue-500 bg-opacity-20 p-3 rounded-lg text-center">
+                        <div class="text-blue-300 text-xs font-semibold">Всего</div>
+                        <div class="text-blue-100 text-lg font-bold" id="total-docs">{{ documents|length }}</div>
+                    </div>
+                    <div class="bg-green-500 bg-opacity-20 p-3 rounded-lg text-center">
+                        <div class="text-green-300 text-xs font-semibold">Подписано</div>
+                        <div class="text-green-100 text-lg font-bold" id="signed-docs">0</div>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div>
-            <button onclick="toggleOutgoingMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
-                <i class="fas fa-paper-plane mr-3"></i> Исходящие
-                <i id="outgoing-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
-            </button>
-            <div id="outgoing-submenu" class="ml-6 mt-2 space-y-1 hidden">
-                <button onclick="filterBy('outgoing-pending')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-hourglass-half mr-3"></i> В ожидании <span id="count-outgoing-pending" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
-                <button onclick="filterBy('outgoing-signed')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-check-circle mr-3"></i> Подписано <span id="count-outgoing-signed" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
-                <button onclick="filterBy('outgoing-rejected')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-times-circle mr-3"></i> Отклонено <span id="count-outgoing-rejected" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
-                </button>
+            {# Main Navigation #}
+            <div class="nav-section">
+                <div class="nav-section-title">Навигация</div>
+                <div class="nav-item">
+                    <button onclick="toggleDocumentFiltersMenu()" class="nav-button">
+                        <i class="fas fa-folder"></i>
+                        <span>Все документы</span>
+                        <i id="doc-filters-caret" class="fas fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div id="document-filters-submenu" class="nav-submenu hidden">
+                        <button onclick="filterBy('all')" class="nav-button">
+                            <i class="fas fa-list"></i>
+                            <span>Все</span>
+                        </button>
+                        <button onclick="filterBy('history')" class="nav-button">
+                            <i class="fas fa-history"></i>
+                            <span>История</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-item">
+                    <button onclick="toggleIncomingMenu()" class="nav-button">
+                        <i class="fas fa-inbox"></i>
+                        <span>Входящие</span>
+                        <i id="incoming-caret" class="fas fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div id="incoming-submenu" class="nav-submenu hidden">
+                        <button onclick="filterBy('incoming-to-sign')" class="nav-button">
+                            <i class="fas fa-pen-alt"></i>
+                            <span>Подписать</span>
+                            <span id="count-incoming-to-sign" class="count-badge">0</span>
+                        </button>
+                        <button onclick="filterBy('incoming-payment-plan')" class="nav-button">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>План платежей</span>
+                            <span id="count-incoming-payment-plan" class="count-badge">0</span>
+                        </button>
+                        <button onclick="filterBy('incoming-payment-request')" class="nav-button">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Заявки на оплату</span>
+                            <span id="count-incoming-payment-request" class="count-badge">0</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="nav-item">
+                    <button onclick="toggleOutgoingMenu()" class="nav-button">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Исходящие</span>
+                        <i id="outgoing-caret" class="fas fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div id="outgoing-submenu" class="nav-submenu hidden">
+                        <button onclick="filterBy('outgoing-pending')" class="nav-button">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>В ожидании</span>
+                            <span id="count-outgoing-pending" class="count-badge">0</span>
+                        </button>
+                        <button onclick="filterBy('outgoing-signed')" class="nav-button">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Подписано</span>
+                            <span id="count-outgoing-signed" class="count-badge">0</span>
+                        </button>
+                        <button onclick="filterBy('outgoing-rejected')" class="nav-button">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Отклонено</span>
+                            <span id="count-outgoing-rejected" class="count-badge">0</span>
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <h3 class="text-sm text-gray-400 uppercase mt-6 mb-3 px-3">Создать</h3>
-        <div>
-            <button onclick="toggleCreateDocumentMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
-                <i class="fas fa-plus-circle mr-3"></i> Создать документ
-                <i id="create-doc-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
-            </button>
-            <div id="create-document-submenu" class="ml-6 mt-2 space-y-1 hidden">
-                <button onclick="showCreateForm('payment')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-money-bill-wave mr-3 text-blue-300"></i> Заявка на оплату
-                </button>
-                <button onclick="showCreateForm('leave')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-plane-departure mr-3 text-green-300"></i> Заявка на отпуск
-                </button>
-                <button onclick="showCreateForm('memo')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-sticky-note mr-3 text-purple-300"></i> Служебная записка
-                </button>
-                <button onclick="showCreateForm('expenditure')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
-                    <i class="fas fa-hand-holding-usd mr-3 text-yellow-300"></i> Заявка на расходование средств
-                </button>
+            {# Create Documents Section #}
+            <div class="nav-section">
+                <div class="nav-section-title">Создать</div>
+                <div class="nav-item">
+                    <button onclick="toggleCreateDocumentMenu()" class="nav-button">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Создать документ</span>
+                        <i id="create-doc-caret" class="fas fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div id="create-document-submenu" class="nav-submenu hidden">
+                        <button onclick="showCreateForm('payment')" class="nav-button">
+                            <i class="fas fa-money-bill-wave text-blue-300"></i>
+                            <span>Заявка на оплату</span>
+                        </button>
+                        <button onclick="showCreateForm('leave')" class="nav-button">
+                            <i class="fas fa-plane-departure text-green-300"></i>
+                            <span>Заявка на отпуск</span>
+                        </button>
+                        <button onclick="showCreateForm('memo')" class="nav-button">
+                            <i class="fas fa-sticky-note text-purple-300"></i>
+                            <span>Служебная записка</span>
+                        </button>
+                        <button onclick="showCreateForm('expenditure')" class="nav-button">
+                            <i class="fas fa-hand-holding-usd text-yellow-300"></i>
+                            <span>Заявка на расходы</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </nav>
+        <div class="mt-auto pt-4 border-t border-gray-700">
+            <button onclick="toggleTheme()" class="nav-button w-full" id="theme-toggle">
+                <i class="fas fa-moon" id="theme-icon"></i>
+                <span>Темная тема</span>
+            </button>
+        </div>
     </aside>
+{% endblock %}
 
+{% block content %}
     <div id="content-wrapper" class="flex-1 flex flex-col"> 
-       
-        <header class="bg-white shadow-md p-4 flex items-center justify-between rounded-bl-lg md:rounded-none md:shadow-none">
-            <div class="flex items-center space-x-6 md:space-x-6">
-                <button onclick="toggleSidebar()" class="md:hidden bg-gray-800 text-white px-3 py-1 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        {# Enhanced Header #}
+        <header class="header">
+            <div class="header-nav">
+                <button onclick="toggleSidebar()" class="md:hidden btn btn-secondary">
                     <i class="fas fa-bars"></i>
                 </button>
-                
-                <a href="#" class="text-gray-600 hover:text-blue-600 flex items-center rounded-md p-2 hover:bg-gray-100 transition-colors duration-200">
-                    <i class="fas fa-tasks mr-0 md:mr-2 text-lg"></i>
-                    <span class="font-medium  md:inline">Задачи</span>
+                <a href="#" class="header-nav-item">
+                    <i class="fas fa-tasks"></i>
+                    <span class="hidden md:inline">Задачи</span>
                 </a>
-                <a href="#" class="text-gray-600 hover:text-blue-600 flex items-center rounded-md p-2 hover:bg-gray-100 transition-colors duration-200">
-                    <i class="fas fa-cogs text-lg"></i>
-                    <span class="font-medium  md:inline">Настройки</span>
+                <a href="#" class="header-nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="hidden md:inline">Аналитика</span>
+                </a>
+                <a href="#" class="header-nav-item">
+                    <i class="fas fa-cogs"></i>
+                    <span class="hidden md:inline">Настройки</span>
                 </a>
             </div>
-            <div class="flex items-center space-x-2 md:space-x-4">
-                <i class="fas fa-search text-gray-600 text-lg cursor-pointer hover:text-blue-600 hidden md:block"></i>
-                <i class="fas fa-bell text-gray-600 text-lg cursor-pointer hover:text-blue-600"></i>
-                <div class="relative flex items-center ml-2 md:ml-4" onclick="toggleUserDropdown(event)">
-                    <img src="https://placehold.co/32x32/000000/ffffff?text=U" alt="User Avatar" class="w-8 h-8 rounded-full mr-2">
-                    <div class="hidden md:block">
-                        <p class="text-sm font-semibold text-gray-800">УРАЗМБЕТ EЛНУР</p>
-                        <p class="text-xs text-gray-500">Разработчик</p>
+            <div class="user-profile">
+                <div class="hidden md:flex items-center gap-3">
+                    <button class="header-nav-item">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="header-nav-item relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+                <div class="user-profile" onclick="toggleUserDropdown(event)">
+                    <img src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff" alt="User Avatar" class="user-avatar">
+                    <div class="user-info hidden md:block">
+                        <div class="user-name">{{ request.user.username }}</div>
+                        <div class="user-role">{{ request.user.department|default:"Сотрудник" }}</div>
                     </div>
                     <i class="fas fa-chevron-down ml-2 text-gray-500 text-xs cursor-pointer"></i>
-                    
-                    {# User Dropdown Menu #}
-                    <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Профиль</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Настройки</a>
-                        <div class="border-t border-gray-100 my-1"></div>
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700">Выйти</a>
+                    <div id="user-dropdown-menu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 hidden border border-gray-200">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md mx-2">
+                            <i class="fas fa-user mr-2"></i>Профиль
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md mx-2">
+                            <i class="fas fa-cog mr-2"></i>Настройки
+                        </a>
+                        <div class="border-t border-gray-100 my-2"></div>
+                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md mx-2">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Выйти
+                        </a>
                     </div>
                 </div>
             </div>
         </header>
-
-        {# Main Content Area #}
-        <main class="flex-1 p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out" id="main-content">
-            <div class="flex justify-between items-center mb-4 md:mb-6">
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-900" id="main-title">Список Документов</h1>
-            </div>
-
+        <main id="main-content">
             <div id="document-list-section">
-                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-                    <div class="hidden md:block overflow-x-auto">
-                        <table class="min-w-full leading-normal">
+                <div class="page-header">
+                    <h1 class="page-title" id="main-title">
+                        <i class="fas fa-file-alt"></i>
+                        Список документов
+                    </h1>
+                    <div class="flex items-center gap-3">
+                        <button onclick="refreshDocuments()" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i>
+                            Обновить
+                        </button>
+                        <button onclick="exportDocuments()" class="btn btn-secondary">
+                            <i class="fas fa-download"></i>
+                            Экспорт
+                        </button>
+                    </div>
+                </div>
+                {# Enhanced Search and Filters #}
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <input type="text" id="search-input" placeholder="Поиск документов..." 
+                                           class="form-input pl-10 pr-4">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="status-filter" class="form-input">
+                                    <option value="">Все статусы</option>
+                                    <option value="pending">Ожидает</option>
+                                    <option value="signed">Подписано</option>
+                                    <option value="rejected">Отклонено</option>
+                                </select>
+                                <select id="type-filter" class="form-input">
+                                    <option value="">Все типы</option>
+                                    <option value="payment">Платежи</option>
+                                    <option value="leave">Отпуска</option>
+                                    <option value="memo">Записки</option>
+                                    <option value="expenditure">Расходы</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {# Enhanced Document Table #}
+                <div class="table-container">
+                    <div class="table-responsive hidden md:block">
+                        <table class="min-w-full">
                             <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200">
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Заголовок
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Контрагент
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Статус
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Автор
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Тип
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    Действия
-                                </th>
-                            </tr>
+                                <tr>
+                                    <th class="w-1/4">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-file-alt text-gray-400"></i>
+                                            Документ
+                                        </div>
+                                    </th>
+                                    <th class="w-1/6">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-users text-gray-400"></i>
+                                            Контрагент
+                                        </div>
+                                    </th>
+                                    <th class="w-1/8">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-flag text-gray-400"></i>
+                                            Статус
+                                        </div>
+                                    </th>
+                                    <th class="w-1/6">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-user text-gray-400"></i>
+                                            Автор
+                                        </div>
+                                    </th>
+                                    <th class="w-1/6">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-tag text-gray-400"></i>
+                                            Тип
+                                        </div>
+                                    </th>
+                                    <th class="w-1/8">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-cog text-gray-400"></i>
+                                            Действия
+                                        </div>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody id="document-table-body">
                                 {% for doc in documents %}
-                                <tr class="hover:bg-gray-50 border-b border-gray-200">
-                                    <td class="px-5 py-4 text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap max-w-xs">
-                                        <div title="{{ doc.title }}">{{ doc.title }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            Дата: {{ doc.created_at|date:"d.m.Y" }} | Номер: {{ doc.external_number|default:"N/A" }}
+                                <tr class="document-row animate-fade-in">
+                                    <td>
+                                        <div class="flex flex-col">
+                                            <div class="font-medium text-gray-900 mb-1" title="{{ doc.title }}">
+                                                {{ doc.title|truncatechars:50 }}
+                                            </div>
+                                            <div class="text-xs text-gray-500 flex items-center gap-2">
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    {{ doc.created_at|date:"d.m.Y" }}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-hashtag"></i>
+                                                    {{ doc.external_number|default:"—" }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-700">
-                                        {% if doc.doc_type == 'payment' %}{{ doc.recipient|default:"" }}
-                                        {% elif doc.doc_type == 'expenditure' %}{{ doc.counterparty_name|default:"" }}
-                                        {% else %}
-                                        {% endif %}
+                                    <td>
+                                        <div class="text-sm text-gray-700">
+                                            {% if doc.doc_type == 'payment' %}
+                                                {{ doc.recipient|default:"—" }}
+                                            {% elif doc.doc_type == 'expenditure' %}
+                                                {{ doc.counterparty_name|default:"—" }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </div>
                                     </td>
-                                    <td class="px-5 py-4 whitespace-nowrap text-sm">
-                                        <span class="
-                                        {% if doc.status == 'prepared' %}bg-gray-200 text-gray-800
-                                        {% elif doc.status == 'on_approval' %}bg-yellow-200 text-yellow-800
-                                        {% elif doc.status == 'approved' %}bg-green-200 text-green-800
-                                        {% elif doc.status == 'pending' %}bg-orange-200 text-orange-800
-                                        {% elif doc.status == 'signed' %}bg-blue-200 text-blue-800
-                                        {% elif doc.status == 'rejected' %}bg-red-200 text-red-800
-                                        {% else %}bg-gray-200 text-gray-800 {# Fallback color if status is unknown #}
-                                        {% endif %} px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
-                                        {% if doc.status == 'prepared' %}Подготовлен
-                                        {% elif doc.status == 'on_approval' %}На согласовании
-                                        {% elif doc.status == 'approved' %}Утвержден
-                                        {% elif doc.status == 'pending' %}Ожидает
-                                        {% elif doc.status == 'signed' %}Подписан
-                                        {% elif doc.status == 'rejected' %}Отклонен
-                                        {% else %}{{ doc.status }} 
-                                        {% endif %}
-                                    </span>
+                                    <td>
+                                        <span class="status-badge {{ doc.status }}">
+                                            {% if doc.status == 'prepared' %}Подготовлен
+                                            {% elif doc.status == 'on_approval' %}На согласовании
+                                            {% elif doc.status == 'approved' %}Утвержден
+                                            {% elif doc.status == 'pending' %}Ожидает
+                                            {% elif doc.status == 'signed' %}Подписан
+                                            {% elif doc.status == 'rejected' %}Отклонен
+                                            {% else %}{{ doc.status }}
+                                            {% endif %}
+                                        </span>
                                     </td>
-                                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-700">{{ doc.creator.username }}</td>
-                                    <td class="px-5 py-4 whitespace-nowrap text-sm text-gray-700">{{ doc.get_doc_type_display }}</td>
-                                    <td class="px-5 py-4 whitespace-nowrap text-sm space-x-2">
-                                        <button onclick="viewDoc({{ doc.id }})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out">Просмотр</button>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://ui-avatars.com/api/?name={{ doc.creator.username }}&size=32&background=6b7280&color=fff" 
+                                                 alt="Avatar" class="w-8 h-8 rounded-full">
+                                            <span class="text-sm text-gray-700">{{ doc.creator.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            {% if doc.doc_type == 'payment' %}
+                                                <i class="fas fa-money-bill-wave text-blue-500"></i>
+                                            {% elif doc.doc_type == 'leave' %}
+                                                <i class="fas fa-plane-departure text-green-500"></i>
+                                            {% elif doc.doc_type == 'memo' %}
+                                                <i class="fas fa-sticky-note text-purple-500"></i>
+                                            {% elif doc.doc_type == 'expenditure' %}
+                                                <i class="fas fa-hand-holding-usd text-yellow-500"></i>
+                                            {% endif %}
+                                            <span class="text-sm text-gray-700">{{ doc.get_doc_type_display }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <button class="btn btn-sm btn-primary view-doc-btn" data-doc-id="{{ doc.id }}">
+                                                <i class="fas fa-eye"></i>
+                                                Просмотр
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    
-                    <div id="mobile-document-list" class="md:hidden divide-y divide-gray-200">
+                    <div id="mobile-document-list" class="md:hidden">
                         {% for doc in documents %}
-                        <div class="mobile-document-item p-4">
-                            <div class="flex justify-between items-start mb-2">
-                                <div class="font-semibold text-gray-900 flex-1 mr-2">{{ doc.title }}</div>
-                                <span class="
-                                    {% if doc.status == 'prepared' %}bg-gray-200 text-gray-800
-                                    {% elif doc.status == 'on_approval' %}bg-yellow-200 text-yellow-800
-                                    {% elif doc.status == 'approved' %}bg-green-200 text-green-800
-                                    {% elif doc.status == 'pending' %}bg-orange-200 text-orange-800
-                                    {% elif doc.status == 'signed' %}bg-blue-200 text-blue-800
-                                    {% elif doc.status == 'rejected' %}bg-red-200 text-red-800
-                                    {% else %}bg-gray-200 text-gray-800
-                                    {% endif %} px-2 py-0.5 rounded-full text-xs">
+                        <div class="mobile-document-item animate-fade-in">
+                            <div class="mobile-doc-header">
+                                <div class="mobile-doc-title">{{ doc.title }}</div>
+                                <span class="status-badge {{ doc.status }}">
                                     {% if doc.status == 'prepared' %}Подготовлен
                                     {% elif doc.status == 'on_approval' %}На согласовании
                                     {% elif doc.status == 'approved' %}Утвержден
@@ -244,148 +374,135 @@
                                     {% endif %}
                                 </span>
                             </div>
-                            <div class="text-sm text-gray-700 mb-1">
-                                <strong>Дата:</strong> {{ doc.created_at|date:"d.m.Y" }} | <strong>Номер:</strong> {{ doc.external_number|default:"N/A" }}
-                            </div>
-                            <div class="text-sm text-gray-700 mb-1">
-                                <strong>Контрагент:</strong> 
-                                {% if doc.doc_type == 'payment' %}{{ doc.recipient|default:"N/A" }}
-                                {% elif doc.doc_type == 'expenditure' %}{{ doc.counterparty_name|default:"N/A" }}
-                                {% else %}N/A
-                                {% endif %}
-                            </div>
-                            <div class="text-sm text-gray-700 mb-1">
-                                <strong>Автор:</strong> {{ doc.creator.username }}
-                            </div>
-                            <div class="text-sm text-gray-700 mb-2">
-                                <strong>Тип:</strong> {{ doc.get_doc_type_display }}
+                            <div class="mobile-doc-meta">
+                                <div class="mobile-doc-field">
+                                    <div class="mobile-doc-field-label">Дата</div>
+                                    <div class="mobile-doc-field-value">{{ doc.created_at|date:"d.m.Y" }}</div>
+                                </div>
+                                <div class="mobile-doc-field">
+                                    <div class="mobile-doc-field-label">Номер</div>
+                                    <div class="mobile-doc-field-value">{{ doc.external_number|default:"—" }}</div>
+                                </div>
+                                <div class="mobile-doc-field">
+                                    <div class="mobile-doc-field-label">Автор</div>
+                                    <div class="mobile-doc-field-value">{{ doc.creator.username }}</div>
+                                </div>
+                                <div class="mobile-doc-field">
+                                    <div class="mobile-doc-field-label">Тип</div>
+                                    <div class="mobile-doc-field-value">{{ doc.get_doc_type_display }}</div>
+                                </div>
                             </div>
                             <div class="mobile-doc-actions">
-                                <button onclick="viewDoc({{ doc.id }})" class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition duration-150 ease-in-out">Просмотр</button>
+                                <button class="btn btn-sm btn-primary flex-1 view-doc-btn" data-doc-id="{{ doc.id }}">
+                                    <i class="fas fa-eye"></i>
+                                    Просмотр
+                                </button>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    
-                    <div id="no-documents-message" class="p-6 text-gray-500 text-center {% if documents %}hidden{% endif %}">Нет документов.</div>
+                    <div id="no-documents-message" class="p-8 text-center text-gray-500 {% if documents %}hidden{% endif %}">
+                        <i class="fas fa-inbox text-4xl mb-4 text-gray-300"></i>
+                        <h3 class="text-lg font-medium mb-2">Нет документов</h3>
+                        <p class="text-sm">Создайте первый документ, используя меню слева</p>
+                    </div>
                 </div>
             </div>
-
-            <div id="create-form-section" class="mt-6 md:mt-8 hidden">
-                <form id="create-doc-form" class="space-y-6 bg-white shadow-lg rounded-lg p-4 md:p-6 lg:p-8">
-                    {% csrf_token %}
-                    <input type="hidden" id="doc-type"/>
-                    <div>
-                        <label for="doc-title" class="block text-sm font-medium text-gray-700 mb-1">Заголовок</label>
-                        <input type="text" id="doc-title" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required/>
-                    </div>
-                    <div>
-                        <label for="doc-description" class="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-                        <textarea id="doc-description" rows="5" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                    </div>
-
-                    <div id="specific-fields-container" class="space-y-4">
-                    </div>
-
-                    <div class="flex justify-end space-x-3">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                            <i class="fas fa-paper-plane mr-2"></i> Создать документ
-                        </button>
-                        <button type="button" onclick="cancelCreateForm()" class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                            <i class="fas fa-times-circle mr-2"></i> Отмена
-                        </button>
-                    </div>
-                </form>
+            <div id="create-form-section" class="hidden">
+                <div class="page-header">
+                    <h1 class="page-title" id="create-form-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Создать документ
+                    </h1>
+                    <button onclick="cancelCreateForm()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </button>
+                </div>
+                <div class="card">
+                    <form id="create-doc-form" class="space-y-6">
+                        {% csrf_token %}
+                        <input type="hidden" id="doc-type"/>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label for="doc-title" class="form-label">
+                                    <i class="fas fa-heading mr-2"></i>Заголовок документа
+                                </label>
+                                <input type="text" id="doc-title" class="form-input" required
+                                       placeholder="Введите заголовок документа"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="doc-priority" class="form-label">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Приоритет
+                                </label>
+                                <select id="doc-priority" class="form-input">
+                                    <option value="normal">Обычный</option>
+                                    <option value="high">Высокий</option>
+                                    <option value="urgent">Срочный</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-description" class="form-label">
+                                <i class="fas fa-align-left mr-2"></i>Описание
+                            </label>
+                            <textarea id="doc-description" rows="4" class="form-input" 
+                                      placeholder="Подробное описание документа..."></textarea>
+                        </div>
+                        <div id="specific-fields-container" class="space-y-6">
+                            <!-- Dynamic fields will be inserted here -->
+                        </div>
+                        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                            <button type="button" onclick="cancelCreateForm()" class="btn btn-secondary">
+                                <i class="fas fa-times mr-2"></i>Отмена
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane mr-2"></i>Создать документ
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        
-<div id="custom-alert-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center hidden">
-    <div class="bg-white rounded-lg shadow-xl p-6 w-11/12 md:w-1/3 mx-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold text-gray-800">Сообщение</h3>
-            <button onclick="hideCustomAlert()" class="text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        <div id="custom-alert-message" class="text-gray-700 mb-6">
-            </div>
-        <div id="modal-actions" class="flex justify-end space-x-3">
-            </div>
-    </div>
-</div>
         </main>
     </div>
-</div>
-
-
-
-<script>
-    const userId = '{{ request.user.username }}';
-    let documents = [
-        {% for doc in documents %}
-        {
-            id: {{ doc.id }},
-            title: '{{ doc.title|escapejs }}',
-            status: '{{ doc.status }}',
-            creatorId: '{{ doc.creator.username }}',
-            signerId: '{{ doc.signer.username }}',
-            type: '{{ doc.doc_type }}',
-            description: '{{ doc.description|escapejs }}',
-            guid: '{{ doc.guid|default_if_none:""|escapejs }}',
-            externalNumber: '{{ doc.external_number|default_if_none:""|escapejs }}',
-            created_at: '{{ doc.created_at|date:"Y-m-d" }}',
-            {% if doc.doc_type == 'payment' %}
-            amount: {{ doc.amount|default_if_none:"null" }},
-            recipient: '{{ doc.recipient|escapejs }}',
-            {% elif doc.doc_type == 'leave' %}
-            startDate: '{{ doc.start_date|date:"Y-m-d" }}',
-            endDate: '{{ doc.end_date|date:"Y-m-d" }}',
-            leaveType: '{{ doc.leave_type|escapejs }}',
-            {% endif %}
-            // For expenditure, if you mock data in view and include it like this:
-            {% comment %}
-            {% if doc.doc_type == 'expenditure' and doc.expenditure_mock_data %}
-            operationType: '{{ doc.expenditure_mock_data.operation_type|escapejs }}',
-            submissionDate: '{{ doc.expenditure_mock_data.submission_date|date:"Y-m-d" }}',
-            expenseDate: '{{ doc.expenditure_mock_data.expense_date|date:"Y-m-d" }}',
-            paymentForm: '{{ doc.expenditure_mock_data.payment_form|escapejs }}',
-            counterpartyName: '{{ doc.expenditure_mock_data.counterparty_name|escapejs }}',
-            contractName: '{{ doc.expenditure_mock_data.contract_name|escapejs }}',
-            currency: '{{ doc.expenditure_mock_data.currency|escapejs }}',
-            amount: {{ doc.expenditure_mock_data.amount|default_if_none:"null" }},
-            comment: '{{ doc.expenditure_mock_data.comment|escapejs }}',
-            {% endif %}
-            {% endcomment %}
-        },
-        {% endfor %}
-    ];
-
-  
-    const recipients = [
-        {% for recipient in recipients %}
-            { id: {{ recipient.id }}, name: '{{ recipient.name|escapejs }}' },
-        {% endfor %}
-    ];
-
-    const allCounterparties = [
-        {% for cp_data in counterparties %}
-            { id: {{ cp_data.id }}, name: '{{ cp_data.name|escapejs }}' },
-        {% endfor %}
-    ];
-
-    const contractsByCounterparty = {
-        {% for cp_id, contracts in contracts_by_counterparty.items %}
-            "{{ cp_id }}": [
-                {% for contract in contracts %}
-                    { id: {{ contract.id }}, name: '{{ contract.name|escapejs }}' },
-                {% endfor %}
-            ],
-        {% endfor %}
-        
-    };
-
-    const sendNewDocUrl = "{% url 'send_created_new_doc' %}";
-</script>
-
+    <div id="custom-alert-modal" class="overlay">
+        <div class="overlay-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    <span id="modal-title">Сообщение</span>
+                </h3>
+                <button onclick="hideCustomAlert()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div id="custom-alert-message" class="text-gray-700 mb-6"></div>
+            <div id="modal-actions" class="flex justify-end space-x-3"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="{% static 'js/common.js' %}"></script>
 <script src="{% static 'js/documents.js' %}"></script>
-</body>
-</html>
+<script>
+// Event delegation for document view buttons
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('document-table-body')?.addEventListener('click', function(e) {
+    if (e.target.classList.contains('view-doc-btn')) {
+      const docId = e.target.getAttribute('data-doc-id');
+      if (docId) {
+        viewDoc(docId);
+      }
+    }
+  });
+  document.getElementById('mobile-document-list')?.addEventListener('click', function(e) {
+    if (e.target.classList.contains('view-doc-btn')) {
+      const docId = e.target.getAttribute('data-doc-id');
+      if (docId) {
+        viewDoc(docId);
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

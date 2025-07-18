@@ -1,8 +1,27 @@
-from django.db import models
-
+# Контрагент (Counterparty) model
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+class Counterparty(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+# Договор (Contract) model
+class Contract(models.Model):
+    name = models.CharField(max_length=255)
+    counterparty = models.ForeignKey(Counterparty, on_delete=models.CASCADE, related_name='contracts')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.counterparty.name})"
+from django.db import models
+
+
 
 
 # Define the Organization model first, as User will refer to it
@@ -60,8 +79,10 @@ class Document(models.Model):
     
     # Payment-specific fields
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    recipient = models.CharField(max_length=200, blank=True)
-    
+    # recipient replaced by counterparty FK
+    counterparty = models.ForeignKey('Counterparty', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
+    contract = models.ForeignKey('Contract', on_delete=models.SET_NULL, null=True, blank=True, related_name='documents')
+
     # Leave-specific fields
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

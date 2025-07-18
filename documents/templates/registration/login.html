@@ -2,130 +2,372 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Вход в систему</title>
+  <title>Система управления документами</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
-    /* Apply Inter font globally */
-    body {
-        font-family: 'Inter', sans-serif;
+    /* Custom CSS Variables for Modern Design */
+    :root {
+      --primary-color: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary-color: #06b6d4;
+      --accent-color: #10b981;
+      --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --input-focus-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
+
     body {
-      margin: 0;
-      background-color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      background: var(--background-gradient);
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      padding: 1rem;
     }
 
     .login-container {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      box-shadow: var(--card-shadow);
+      padding: 2.5rem;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      transition: all 0.3s ease;
     }
 
-    .login-container h2 {
+    .login-container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    .logo-section {
       text-align: center;
-      margin-bottom: 1.5rem;
-      color: #111827;
+      margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--primary-color);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      color: white;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      position: relative;
     }
 
-    .form-group label {
+    .form-label {
       display: block;
-      font-weight: 600;
+      font-weight: 500;
       margin-bottom: 0.5rem;
       color: #374151;
+      font-size: 0.875rem;
     }
 
-    .form-group input,
-    .form-group select {
+    .form-input {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
       font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: var(--input-focus-shadow);
+    }
+
+    .form-input:hover {
+      border-color: #d1d5db;
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      pointer-events: none;
     }
 
     .login-btn {
       width: 100%;
-      padding: 0.75rem;
-      background-color: #3b82f6;
+      padding: 0.875rem 1.5rem;
+      background: var(--primary-color);
       color: white;
       font-weight: 600;
       border: none;
-      border-radius: 0.5rem;
+      border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
     }
 
     .login-btn:hover {
-      background-color: #2563eb;
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.5);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
     }
 
     .error-message {
-        color: #ef4444; /* red-500 */
-        margin-top: 0.5rem;
-        text-align: center;
-        font-size: 0.875rem;
-        margin-bottom: 1rem; /* Added margin for spacing */
+      color: #ef4444;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
+    .success-message {
+      color: #059669;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .login-container {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .form-group {
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .form-group:nth-child(2) { animation-delay: 0.1s; }
+    .form-group:nth-child(3) { animation-delay: 0.2s; }
+    .form-group:nth-child(4) { animation-delay: 0.3s; }
+    .form-group:nth-child(5) { animation-delay: 0.4s; }
+
+    /* Mobile Responsive */
     @media (max-width: 480px) {
       .login-container {
-        margin: 0 1rem;
         padding: 1.5rem;
+        margin: 0 1rem;
       }
+      
+      .logo-section h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Loading state */
+    .loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid transparent;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
     }
   </style>
 </head>
 <body>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <i class="fas fa-sun" id="theme-icon"></i>
+  </div>
 
-<div class="login-container">
-  <h2>Вход в систему</h2>
-  <form method="post">
-    {% csrf_token %} {# Django's CSRF token for the form #}
-    
-    {# Display Django messages (e.g., error messages from the view) #}
-    {% if messages %}
-        <div class="error-message">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
+  <div class="login-container">
+    <div class="logo-section">
+      <div class="logo-icon">
+        <i class="fas fa-file-signature"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">Система управления документами</h1>
+      <p class="text-gray-600 text-sm">Добро пожаловать в современную систему управления документами</p>
+    </div>
 
-    <div class="form-group">
-      <label for="organization">Организация</label>
-      <select id="organization" name="organization" required>
-        <option value="">Выберите...</option>
-        {% for org in organizations %}
-          <option value="{{ org.id }}">{{ org.name }}</option>
+    <form method="post" id="loginForm">
+      {% csrf_token %}
+      
+      {% if messages %}
+        {% for message in messages %}
+          <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ message }}
+          </div>
         {% endfor %}
-      </select>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="organization" class="form-label">
+          <i class="fas fa-building mr-2"></i>Организация
+        </label>
+        <select id="organization" name="organization" class="form-input" required>
+          <option value="">Выберите организацию...</option>
+          {% for org in organizations %}
+            <option value="{{ org.id }}">{{ org.name }}</option>
+          {% endfor %}
+        </select>
+        <i class="fas fa-chevron-down input-icon"></i>
+      </div>
+
+      <div class="form-group">
+        <label for="username" class="form-label">
+          <i class="fas fa-user mr-2"></i>Имя пользователя
+        </label>
+        <input type="text" id="username" name="username" class="form-input" required>
+        <i class="fas fa-user input-icon"></i>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">
+          <i class="fas fa-lock mr-2"></i>Пароль
+        </label>
+        <input type="password" id="password" name="password" class="form-input" required>
+        <i class="fas fa-eye input-icon" id="passwordToggle" onclick="togglePassword()"></i>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginButton">
+        <i class="fas fa-sign-in-alt mr-2"></i>Войти в систему
+      </button>
+    </form>
+
+    <div class="mt-6 text-center">
+      <p class="text-sm text-gray-600">
+        <i class="fas fa-shield-alt mr-1"></i>
+        Защищенное соединение с 1С системой
+      </p>
     </div>
+  </div>
 
-    <div class="form-group">
-      <label for="username">Имя пользователя</label>
-      <input type="text" id="username" name="username" required>
-    </div>
+  <script>
+    // Enhanced form interactions
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      const button = document.getElementById('loginButton');
+      button.classList.add('loading');
+      button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Подключение...';
+    });
 
-    <div class="form-group">
-      <label for="password">Пароль</label>
-      <input type="password" id="password" name="password" required>
-    </div>
+    // Password toggle functionality
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const passwordToggle = document.getElementById('passwordToggle');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordToggle.classList.remove('fa-eye');
+        passwordToggle.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        passwordToggle.classList.remove('fa-eye-slash');
+        passwordToggle.classList.add('fa-eye');
+      }
+    }
 
-    <button type="submit" class="login-btn">Войти</button>
-  </form>
-</div>
+    // Theme toggle functionality (placeholder)
+    function toggleTheme() {
+      const themeIcon = document.getElementById('theme-icon');
+      if (themeIcon.classList.contains('fa-sun')) {
+        themeIcon.classList.remove('fa-sun');
+        themeIcon.classList.add('fa-moon');
+      } else {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+      }
+    }
 
+    // Enhanced form validation
+    document.querySelectorAll('.form-input').forEach(input => {
+      input.addEventListener('blur', function() {
+        if (this.value.trim() === '') {
+          this.style.borderColor = '#ef4444';
+        } else {
+          this.style.borderColor = '#10b981';
+        }
+      });
+
+      input.addEventListener('focus', function() {
+        this.style.borderColor = '#4f46e5';
+      });
+    });
+
+    // Auto-focus first empty field
+    document.addEventListener('DOMContentLoaded', function() {
+      const firstEmptyField = document.querySelector('.form-input:not([value])');
+      if (firstEmptyField) {
+        firstEmptyField.focus();
+      }
+    });
+  </script>
 </body>
 </html>
