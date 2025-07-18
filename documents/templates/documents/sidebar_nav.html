@@ -1,0 +1,73 @@
+<nav class="space-y-2 flex-1">
+    <h3 class="text-sm text-gray-400 uppercase mb-3 px-3">Документы</h3>
+
+    <div>
+        <button onclick="toggleDocumentFiltersMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
+            <i class="fas fa-folder mr-3"></i> Все документы
+            <i id="doc-filters-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
+        </button>
+        <div id="document-filters-submenu" class="ml-6 mt-2 space-y-1 hidden">
+            <button onclick="filterBy('all')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-list mr-3"></i> Все
+            </button>
+            <button onclick="filterBy('history')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-history mr-3"></i> История
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <button onclick="toggleIncomingMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
+            <i class="fas fa-inbox mr-3"></i> Входящие
+            <i id="incoming-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
+        </button>
+        <div id="incoming-submenu" class="ml-6 mt-2 space-y-1 hidden">
+            <button onclick="filterBy('incoming-to-sign')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-pen-alt mr-3"></i> Подписать <span id="count-incoming-to-sign" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+            <button onclick="filterBy('incoming-payment-plan')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-file-invoice-dollar mr-3"></i> План платежей <span id="count-incoming-payment-plan" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+            <button onclick="filterBy('incoming-payment-request')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-money-bill-wave mr-3"></i> Заявка на оплату <span id="count-incoming-payment-request" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <button onclick="toggleOutgoingMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
+            <i class="fas fa-paper-plane mr-3"></i> Исходящие
+            <i id="outgoing-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
+        </button>
+        <div id="outgoing-submenu" class="ml-6 mt-2 space-y-1 hidden">
+            <button onclick="filterBy('outgoing-pending')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-hourglass-half mr-3"></i> В ожидании <span id="count-outgoing-pending" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+            <button onclick="filterBy('outgoing-signed')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-check-circle mr-3"></i> Подписано <span id="count-outgoing-signed" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+            <button onclick="filterBy('outgoing-rejected')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-times-circle mr-3"></i> Отклонено <span id="count-outgoing-rejected" class="ml-auto px-2 py-0.5 bg-gray-700 rounded-full text-xs">0</span>
+            </button>
+        </div>
+    </div>
+
+    <h3 class="text-sm text-gray-400 uppercase mt-6 mb-3 px-3">Создать</h3>
+    <div>
+        <button onclick="toggleCreateDocumentMenu()" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center transition duration-200 ease-in-out">
+            <i class="fas fa-plus-circle mr-3"></i> Создать документ
+            <i id="create-doc-caret" class="fas fa-caret-down ml-auto transition-transform duration-200"></i>
+        </button>
+        <div id="create-document-submenu" class="ml-6 mt-2 space-y-1 hidden">
+            <button onclick="showCreateForm('payment')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-money-bill-wave mr-3 text-blue-300"></i> Заявка на оплату
+            </button>
+            <button onclick="showCreateForm('leave')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-plane-departure mr-3 text-green-300"></i> Заявка на отпуск
+            </button>
+            <button onclick="showCreateForm('memo')" class="w-full text-left px-4 py-2 rounded-md hover:bg-gray-700 flex items-center text-sm transition duration-200 ease-in-out">
+                <i class="fas fa-sticky-note mr-3 text-purple-300"></i> Служебная записка
+            </button>
+        </div>
+    </div>
+</nav>
